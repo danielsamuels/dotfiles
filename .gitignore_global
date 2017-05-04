@@ -1,1 +1,6 @@
-/Users/danielsamuels/.gitignore_global
+*~
+.DS_Store
+circle.key
+circle.key.pub
+.circle.key
+.circle.key.pub

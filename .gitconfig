@@ -1,1 +1,45 @@
-/Users/danielsamuels/.gitconfig
+[user]
+	name = Daniel Samuels
+	email = daniel@onespacemedia.com
+	signingkey = B1EC639E5B36C33E
+[push]
+  default = simple
+[help]
+  autocorrect = 1
+[core]
+  editor = nano
+  mergeoptions = --no-edit --no-commit
+	excludesfile = /Users/danielsamuels/.gitignore_global
+[alias]
+  cleanup = "!git branch --merged | grep  -v '\\*\\|master\\|develop' | xargs -n 1 git branch -d"
+  pp = !git pull --rebase && git push
+  ppu = !git pull --rebase && git push && ./manage.py update
+  pr  = "!f() { git checkout develop && git fetch -fu ${2:-origin} refs/pull/$1/head:pr/$1 && git checkout pr/$1 && git rebase -i origin/develop && git checkout develop && git merge - && git push; }; f"
+  prm  = "!f() { git checkout master && git fetch -fu ${2:-origin} refs/pull/$1/head:pr/$1 && git checkout pr/$1 && git rebase -i origin/master && git checkout master && git merge - && git push; }; f"
+  sync-fork = "!git fetch upstream && git checkout master && git merge upstream/master"
+[color]
+  ui = true
+  diff = true
+[difftool "sourcetree"]
+	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
+	path = 
+[mergetool "sourcetree"]
+	cmd = /Users/danielsamuels/Applications/SourceTree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
+	trustExitCode = true
+[filter "lfs"]
+  clean = git-lfs clean %f
+  smudge = git-lfs smudge %f
+  required = true
+[credential]
+  helper = osxkeychain
+[pull]
+  rebase = true
+[github]
+  user = danielsamuels
+[ghi]
+  token = !security find-internet-password -a danielsamuels -s github.com -l 'ghi token' -w
+[commit]
+	gpgsign = true
+	template = /Users/danielsamuels/.stCommitMsg
+[gpg]
+  program = /Users/danielsamuels/Applications/SourceTree.app/Contents/Resources/bin/stgpg.sh
