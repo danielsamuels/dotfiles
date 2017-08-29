@@ -1,4 +1,5 @@
-PATH="$HOME/.yarn/bin:/usr/local/bin:/usr/local/sbin:$PATH:~/Workspace/scripts/src/bin:/usr/local/mysql/bin"
+#! /usr/local/bin/bash
+PATH="/usr/local/opt/curl/bin:$HOME/.yarn/bin:/usr/local/bin:/usr/local/sbin:$PATH:~/Workspace/scripts/src/bin:/usr/local/mysql/bin"
 
 # Source various helper scripts.
 source $HOME/.secrets
@@ -42,6 +43,7 @@ export HISTFILESIZE=100000               # big big history
 shopt -s histappend                      # append to history, don't overwrite it
 export CLICOLOR=1
 export TERM=xterm-256color
+export EDITOR=nano
 
 shopt -s globstar
 shopt -s dirspell
@@ -64,7 +66,9 @@ alias publish='python setup.py register sdist upload'
 alias i='ghi open -u danielsamuels'
 alias iw='watch -n 5 ghi list -S updated'
 alias n='while true; do npm run dev; done'
-alias fix-npm='rm -rf node_modules; npm i'
+alias fix-npm='rm -rf node_modules; yarn'
+# For now..
+alias sublime=code
 
 # Project up to date
 u() {
@@ -132,6 +136,10 @@ runserver(){
 }
 
 mov2gif() {
+    if [ $# -eq 0 ]; then
+        echo "Usage: mov2gif <file> <fps:30> <scale:0.4>"
+        return 1
+    fi
     # 0.5 for downscaling retina
     SCALE=${3:-0.4}
     ffmpeg -y -i $1 -vf fps=${2:30},scale=iw*$SCALE:ih*$SCALE,palettegen palette.png
@@ -157,5 +165,42 @@ mmfile() {
 # Code search
 # Usage: s "DecimalField"
 s() {
-    ag -Q --ignore "-htmlcov/*,-js/build/*,-migrations/*,-*.svg,-build/*.css,-.venv/*,-build/*,-*.js.map,-static/js/app.js,-.git/*,-node_modules/*,-tests/*.py,-*.min.js,-ckeditor/*,-frontend/*,-static/css/*,-ui-kit/*,-*.csv,-*.log,-*.xml,-*.json" "$1" ~/Workspace/
+    ag -Q --ignore "-htmlcov/*,-js/build/*,-migrations/*,-*.svg,-build/*.css,-static/css/*.css,-.venv/*,-build/*,-*.js.map,-static/js/app.js,-.git/*,-node_modules/*,-tests/*.py,-*.min.js,-ckeditor/*,-frontend/*,-static/css/*,-ui-kit/*,-*.csv,-*.log,-*.xml,-*.json" "$1" ~/Workspace/
 }
+
+addsshkey() (  # Regular brackets to turn this into a subshell
+    shopt -s nocasematch
+
+    case "$1" in
+        "dg")
+            USER='dan-gamble'
+            ;;
+        "dc")
+            USER='daniel-clayton'
+            ;;
+        "ds")
+            USER='daniel-samuels'
+            ;;
+        "eh")
+            USER='eik-hunter'
+            ;;
+        "jf")
+            USER='james-foley'
+            ;;
+        "lc")
+            USER='lewis-collard'
+            ;;
+        "tr")
+            USER='thomas-rumbold'
+            ;;
+        *)
+            echo 'Invalid person specified'
+            exit
+            ;;
+    esac
+
+    SSH_KEY=$(cat ~/Documents/SSH\ Keys/$USER.pub)
+
+    echo "$SSH_KEY" | ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no "deploy@$2.onespace.media" "cat >> /home/deploy/.ssh/authorized_keys"
+    echo "SSH key for $USER has been added to $2.onespace.media."
+)
