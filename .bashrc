@@ -11,3 +11,8 @@ export NVM_DIR="/Users/danielsamuels/.nvm"
 
 export PATH="$HOME/.yarn/bin:$PATH"
 
+
+# added by travis gem
+[ -f /Users/danielsamuels/.travis/travis.sh ] && source /Users/danielsamuels/.travis/travis.sh
+
+. /usr/local/etc/profile.d/z.sh

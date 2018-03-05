@@ -1,10 +1,12 @@
 #! /usr/local/bin/bash
-PATH="/usr/local/opt/curl/bin:$HOME/.yarn/bin:/usr/local/bin:/usr/local/sbin:$PATH:~/Workspace/scripts/src/bin:/usr/local/mysql/bin"
+PATH="/usr/local/opt/curl/bin:$HOME/.yarn/bin:/usr/local/bin:/usr/local/sbin:$PATH:~/Workspace/_other/scripts/src/bin:/usr/local/mysql/bin"
 
 # Source various helper scripts.
 source $HOME/.secrets
 # source $HOME/.bashrc
 [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
+
+. /usr/local/etc/profile.d/z.sh
 
 # NVM
 export NVM_DIR="/Users/danielsamuels/.nvm"
@@ -18,7 +20,7 @@ _virtualenv_auto_activate() {
         # Check to see if already activated to avoid redundant activating
         if [ "$VIRTUAL_ENV" != "$(pwd -P)/.venv" ]; then
             _VENV_NAME=$(basename `pwd`)
-            echo Activating virtualenv \"$_VENV_NAME\"...
+            echo "Activating virtualenv \"$_VENV_NAME\"..."
             VIRTUAL_ENV_DISABLE_PROMPT=1
             source .venv/bin/activate
             _OLD_VIRTUAL_PS1="$PS1"
@@ -44,6 +46,7 @@ shopt -s histappend                      # append to history, don't overwrite it
 export CLICOLOR=1
 export TERM=xterm-256color
 export EDITOR=nano
+export PYTHONDONTWRITEBYTECODE=1
 
 shopt -s globstar
 shopt -s dirspell
@@ -61,18 +64,21 @@ alias p='git pp'
 alias virtualenv='/usr/local/bin/virtualenv -p python'
 alias fuck='$(thefuck $(fc -ln -1))'
 alias pf='pip freeze > requirements.txt'
-alias pi='pip install -r requirements.txt'
+alias pi='pip install --upgrade pip; pip install -r requirements.txt'
 alias publish='python setup.py register sdist upload'
 alias i='ghi open -u danielsamuels'
 alias iw='watch -n 5 ghi list -S updated'
 alias n='while true; do npm run dev; done'
 alias fix-npm='rm -rf node_modules; yarn'
+alias c="clear && printf '\e[3J'"
 # For now..
 alias sublime=code
+alias c='code .'
 
 # Project up to date
 u() {
   git pull
+  pip install --upgrade pip
   pip install -r requirements.txt
   yarn
   python manage.py pulldb
@@ -165,7 +171,7 @@ mmfile() {
 # Code search
 # Usage: s "DecimalField"
 s() {
-    ag -Q --ignore "-htmlcov/*,-js/build/*,-migrations/*,-*.svg,-build/*.css,-static/css/*.css,-.venv/*,-build/*,-*.js.map,-static/js/app.js,-.git/*,-node_modules/*,-tests/*.py,-*.min.js,-ckeditor/*,-frontend/*,-static/css/*,-ui-kit/*,-*.csv,-*.log,-*.xml,-*.json" "$1" ~/Workspace/
+    ag -Q --ignore "-htmlcov/*,-js/build/*,-migrations/*,-*.svg,-build/*.css,-static/css/*.css,-.venv/*,-build/*,-static/js/*.js.map,-static/js/app.js,-.git/*,-node_modules/*,-tests/*.py,-*.min.js,-ckeditor/*,-frontend/*,-static/css/*,-ui-kit/*,-*.csv,-*.log,-*.xml,-*.json" "$1" ~/Workspace/
 }
 
 addsshkey() (  # Regular brackets to turn this into a subshell
@@ -199,8 +205,45 @@ addsshkey() (  # Regular brackets to turn this into a subshell
             ;;
     esac
 
-    SSH_KEY=$(cat ~/Documents/SSH\ Keys/$USER.pub)
+    SSH_KEY=$(cat ~/Documents/ssh-keys/$USER.pub)
 
     echo "$SSH_KEY" | ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no "deploy@$2.onespace.media" "cat >> /home/deploy/.ssh/authorized_keys"
     echo "SSH key for $USER has been added to $2.onespace.media."
 )
+
+venv() {
+    PYTHON_2_COMMAND="/usr/local/bin/virtualenv -p python .venv"
+    PYTHON_3_COMMAND="/usr/local/bin/python3 -m venv .venv"
+
+    # Was the Python version defined in the args?
+    if [ -z "$1" ]; then
+        # Try to read the Django version from the requirements
+        DJANGO_VERSION=(`grep '^Django' requirements.txt | python -c 'import sys; req = sys.stdin.read().strip(); print(req.split(".")[1])'`)
+
+        if (( DJANGO_VERSION > 10 )); then
+            echo "Creating a Python 3 virtual environment (read Django version > 10)."
+            eval "$PYTHON_3_COMMAND"
+        else
+            echo "Creating a Python 2 virtual environment (read Django version <= 10)."
+            eval "$PYTHON_2_COMMAND"
+        fi
+    else
+        if [ "${1:2}" == 2 ]; then  # Python 2 venv
+            echo "Creating a Python 2 virtual environment (manually specified as 2)."
+            eval "$PYTHON_2_COMMAND"
+        elif [ "$1" == 3 ]; then
+            echo "Creating a Python 3 virtual environment (manually specified as 3)."
+            eval "$PYTHON_3_COMMAND"
+        fi
+    fi
+
+    source .venv/bin/activate
+    pip install -U setuptools pip
+    pip install -r requirements.txt
+}
+
+lnk() {
+    FOLDER=${1%/}
+    LETTER=${FOLDER:0:1}
+    ln -s /Users/danielsamuels/Workspace/_client-projects/"$LETTER"/"$FOLDER"/ /Users/danielsamuels/Workspace/"$FOLDER"
+}
