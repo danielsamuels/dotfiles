@@ -247,3 +247,13 @@ lnk() {
     LETTER=${FOLDER:0:1}
     ln -s /Users/danielsamuels/Workspace/_client-projects/"$LETTER"/"$FOLDER"/ /Users/danielsamuels/Workspace/"$FOLDER"
 }
+
+worker() {
+    DB_USER=$(whoami) DB_NAME="$1" DJANGO_SETTINGS_MODULE="$1.settings.local" celery -A "$1" worker -E --loglevel="${2:-info}"
+}
+
+quickrelease() {
+    git flow release start "$1"
+    git flow release finish -m "$1" "$1"
+    git push --all
+}
